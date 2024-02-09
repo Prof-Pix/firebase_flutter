@@ -1,4 +1,4 @@
-# firebase_flutter
+# SpeakEase
 
 A new Flutter project.
 
