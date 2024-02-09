@@ -1,14 +1,36 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class LoginPage extends StatefulWidget {
+  final VoidCallback showSignupPage;
+  const LoginPage({required this.showSignupPage, super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginPageState extends State<LoginPage> {
   bool value = false;
+
+  // textfield controllers
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  //sign in method
+  Future signIn() async {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim());
+  }
+
+  //dispose
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +84,7 @@ class _LoginState extends State<Login> {
               ),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.only(top: 130),
+                  padding: const EdgeInsets.only(top: 130),
                   child: Container(
                     width: 300,
                     child: const Image(
@@ -83,6 +105,7 @@ class _LoginState extends State<Login> {
             child: Column(
               children: [
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xffe6e1e1),
@@ -101,6 +124,8 @@ class _LoginState extends State<Login> {
                   height: 28.8,
                 ),
                 TextField(
+                  obscureText: true,
+                  controller: _passwordController,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xffe6e1e1),
@@ -158,7 +183,7 @@ class _LoginState extends State<Login> {
                   children: [
                     Expanded(
                       child: TextButton(
-                          onPressed: () {},
+                          onPressed: signIn,
                           style: TextButton.styleFrom(
                               backgroundColor: const Color(0xffbe29ec)),
                           child: const Text(
@@ -171,20 +196,23 @@ class _LoginState extends State<Login> {
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 15,
                 ),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "Don't have an account?",
                       style: TextStyle(fontSize: 10),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 5,
                     ),
-                    Text("Create an account", style: TextStyle(fontSize: 10))
+                    GestureDetector(
+                        onTap: widget.showSignupPage,
+                        child: const Text("Create an account",
+                            style: TextStyle(fontSize: 10)))
                   ],
                 )
               ],
