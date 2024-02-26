@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SignupPage extends StatefulWidget {
   final VoidCallback showLoginPage;
-  const SignupPage({required this.showLoginPage, super.key});
+  const SignupPage({required this.showLoginPage, Key? key}) : super(key: key);
 
   @override
   State<SignupPage> createState() => _SignupPageState();
@@ -48,7 +49,7 @@ class _SignupPageState extends State<SignupPage> {
 
 class SignUpForm extends StatefulWidget {
   final VoidCallback showLoginPage;
-  const SignUpForm({required this.showLoginPage, super.key});
+  const SignUpForm({required this.showLoginPage, Key? key}) : super(key: key);
 
   @override
   State<SignUpForm> createState() => _SignUpFormState();
@@ -57,12 +58,48 @@ class SignUpForm extends StatefulWidget {
 class _SignUpFormState extends State<SignUpForm> {
   final _formKey = GlobalKey<FormState>();
 
-  //text controllers
+  //For Creating the Username and Pass
+  Future signUp() async {
+    try {
+      if (isPasswordConfirmed()) {
+        print(_emailCreateController.text);
+
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailCreateController.text.trim(),
+          password: _passwordCreateController.text.trim(),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account Created Successfully!'),
+          ),
+        );
+      }
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Signup Failed. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  // Text controllers
   final _emailCreateController = TextEditingController();
   final _fullNameCreateController = TextEditingController();
   final _userNameCreateController = TextEditingController();
   final _passwordCreateController = TextEditingController();
   final _confirmPasswordCreateController = TextEditingController();
+
+  //For confirming the password
+  bool isPasswordConfirmed() {
+    if (_passwordCreateController.text.trim() ==
+        _confirmPasswordCreateController.text.trim()) {
+      return true;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,207 +109,159 @@ class _SignUpFormState extends State<SignUpForm> {
         key: _formKey,
         child: Column(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Email",
-                  style: TextStyle(fontSize: 18, letterSpacing: 0.5),
-                ),
-                TextFormField(
-                  controller: _emailCreateController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "This field is required";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Please enter email",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      prefixIcon: const Icon(
-                        Icons.account_circle_sharp,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-              ],
-            ), // Email TextField
-            const SizedBox(height: 13),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Full Name",
-                  style: TextStyle(fontSize: 18, letterSpacing: 0.5),
-                ),
-                TextFormField(
-                  controller: _fullNameCreateController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "This field is required";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Please enter full name",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      prefixIcon: const Icon(
-                        Icons.account_circle_sharp,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-              ],
-            ), //Full Name TextField
-            const SizedBox(height: 13),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Username",
-                  style: TextStyle(fontSize: 18, letterSpacing: 0.5),
-                ),
-                TextFormField(
-                  controller: _userNameCreateController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "This field is required";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Please enter username",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      prefixIcon: const Icon(
-                        Icons.account_circle_sharp,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-              ],
-            ), // Username TextField
-            const SizedBox(height: 13),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Password",
-                  style: const TextStyle(fontSize: 18, letterSpacing: 0.5),
-                ),
-                TextFormField(
-                  obscureText: true,
-                  controller: _passwordCreateController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "This field is required";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Please enter password",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      suffixIcon: const Icon(Icons.remove_red_eye),
-                      prefixIcon: const Icon(
-                        Icons.lock,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-              ],
-            ), //Password TextField
-            const SizedBox(height: 13),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Confirm Password",
-                  style: TextStyle(fontSize: 18, letterSpacing: 0.5),
-                ),
-                TextFormField(
-                  obscureText: true,
-                  controller: _confirmPasswordCreateController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "This field is required";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Please confirm password",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      suffixIcon: const Icon(Icons.remove_red_eye),
-                      prefixIcon: const Icon(
-                        Icons.lock,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-              ],
-            ), //Confirm Password TextField
+            CustomTextField(
+              labelText: 'Email',
+              hintText: 'Please enter email',
+              controller: _emailCreateController,
+              prefixIcon: Icons.account_circle_sharp,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              labelText: 'Full Name',
+              hintText: 'Please enter full name',
+              controller: _fullNameCreateController,
+              prefixIcon: Icons.account_circle_sharp,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              labelText: 'Username',
+              hintText: 'Please enter username',
+              controller: _userNameCreateController,
+              prefixIcon: Icons.account_circle_sharp,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              labelText: 'Password',
+              hintText: 'Please enter password',
+              controller: _passwordCreateController,
+              prefixIcon: Icons.lock,
+              obscureText: false,
+              suffixIcon: Icons.remove_red_eye,
+            ),
+            const SizedBox(height: 15),
+            CustomTextField(
+              labelText: 'Confirm Password',
+              hintText: 'Please confirm password',
+              controller: _confirmPasswordCreateController,
+              prefixIcon: Icons.lock,
+              obscureText: false,
+              suffixIcon: Icons.remove_red_eye,
+            ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Account Created Successfully!')),
-                        );
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xffbe29ec),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 100, vertical: 15)),
-                    child: const Text(
-                      "Sign Up!",
-                      style: TextStyle(
-                          color: Color(0xffffffff),
-                          fontSize: 15.7,
-                          fontWeight: FontWeight.w700),
-                    )),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      signUp();
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xffbe29ec),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 100,
+                      vertical: 15,
+                    ),
+                  ),
+                  child: const Text(
+                    "Sign Up!",
+                    style: TextStyle(
+                      color: Color(0xffffffff),
+                      fontSize: 15.7,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ],
             ),
+            const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text("Already a member?"),
+                const SizedBox(width: 5),
                 GestureDetector(
-                    onTap: widget.showLoginPage,
-                    child: const Text("Login now!"))
+                  onTap: widget.showLoginPage,
+                  child: const Text(
+                    "Login now!",
+                    style: TextStyle(
+                        color: Color(0xff800080), fontWeight: FontWeight.w700),
+                  ),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class CustomTextField extends StatelessWidget {
+  final String _labelText;
+  final String _hintText;
+  final TextEditingController _controller;
+  final IconData _prefixIcon;
+  final IconData? _suffixIcon;
+  final bool _obscureText;
+
+  const CustomTextField({
+    required String labelText,
+    required String hintText,
+    required TextEditingController controller,
+    required IconData prefixIcon,
+    IconData? suffixIcon,
+    bool obscureText = false,
+    Key? key,
+  })  : _labelText = labelText,
+        _hintText = hintText,
+        _controller = controller,
+        _prefixIcon = prefixIcon,
+        _suffixIcon = suffixIcon,
+        _obscureText = obscureText,
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _labelText,
+          style: const TextStyle(fontSize: 18, letterSpacing: 0.5),
+        ),
+        TextFormField(
+          obscureText: _obscureText,
+          controller: _controller,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "This field is required";
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xffe6e1e1),
+            hintText: _hintText,
+            hintStyle: const TextStyle(color: Colors.grey),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.all(10),
+            prefixIcon: Icon(
+              _prefixIcon,
+              color: const Color(0xffffffff),
+            ),
+            suffixIcon: _suffixIcon != null
+                ? Icon(
+                    _suffixIcon,
+                  )
+                : null,
+          ),
+        ),
+      ],
     );
   }
 }
