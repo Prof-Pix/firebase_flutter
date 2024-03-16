@@ -1,5 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+////Importing from the Firebase Auth
+import 'package:firebase_auth/firebase_auth.dart';
+
+//Importing Components from the Component Folder
+import 'package:firebase_flutter/components/CustomTextField.dart';
+import 'package:firebase_flutter/components/CustomTextPasswordField.dart';
 
 class SignupPage extends StatefulWidget {
   final VoidCallback showLoginPage;
@@ -62,8 +68,6 @@ class _SignUpFormState extends State<SignUpForm> {
   Future signUp() async {
     try {
       if (isPasswordConfirmed()) {
-        print(_emailCreateController.text);
-
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailCreateController.text.trim(),
           password: _passwordCreateController.text.trim(),
@@ -74,9 +78,14 @@ class _SignUpFormState extends State<SignUpForm> {
             content: Text('Account Created Successfully!'),
           ),
         );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Passwords must match. Please try again.'),
+          ),
+        );
       }
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Signup Failed. Please try again.'),
@@ -115,37 +124,31 @@ class _SignUpFormState extends State<SignUpForm> {
               controller: _emailCreateController,
               prefixIcon: Icons.account_circle_sharp,
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
             CustomTextField(
               labelText: 'Full Name',
               hintText: 'Please enter full name',
               controller: _fullNameCreateController,
               prefixIcon: Icons.account_circle_sharp,
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
             CustomTextField(
               labelText: 'Username',
               hintText: 'Please enter username',
               controller: _userNameCreateController,
               prefixIcon: Icons.account_circle_sharp,
             ),
-            const SizedBox(height: 15),
-            CustomTextField(
+            const SizedBox(height: 20),
+            CustomTextPasswordField(
               labelText: 'Password',
               hintText: 'Please enter password',
               controller: _passwordCreateController,
-              prefixIcon: Icons.lock,
-              obscureText: false,
-              suffixIcon: Icons.remove_red_eye,
             ),
-            const SizedBox(height: 15),
-            CustomTextField(
+            const SizedBox(height: 20),
+            CustomTextPasswordField(
               labelText: 'Confirm Password',
               hintText: 'Please confirm password',
               controller: _confirmPasswordCreateController,
-              prefixIcon: Icons.lock,
-              obscureText: false,
-              suffixIcon: Icons.remove_red_eye,
             ),
             const SizedBox(height: 20),
             Row(
@@ -175,7 +178,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
               ],
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -194,74 +197,6 @@ class _SignUpFormState extends State<SignUpForm> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class CustomTextField extends StatelessWidget {
-  final String _labelText;
-  final String _hintText;
-  final TextEditingController _controller;
-  final IconData _prefixIcon;
-  final IconData? _suffixIcon;
-  final bool _obscureText;
-
-  const CustomTextField({
-    required String labelText,
-    required String hintText,
-    required TextEditingController controller,
-    required IconData prefixIcon,
-    IconData? suffixIcon,
-    bool obscureText = false,
-    Key? key,
-  })  : _labelText = labelText,
-        _hintText = hintText,
-        _controller = controller,
-        _prefixIcon = prefixIcon,
-        _suffixIcon = suffixIcon,
-        _obscureText = obscureText,
-        super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _labelText,
-          style: const TextStyle(fontSize: 18, letterSpacing: 0.5),
-        ),
-        TextFormField(
-          obscureText: _obscureText,
-          controller: _controller,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return "This field is required";
-            }
-            return null;
-          },
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xffe6e1e1),
-            hintText: _hintText,
-            hintStyle: const TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.all(10),
-            prefixIcon: Icon(
-              _prefixIcon,
-              color: const Color(0xffffffff),
-            ),
-            suffixIcon: _suffixIcon != null
-                ? Icon(
-                    _suffixIcon,
-                  )
-                : null,
-          ),
-        ),
-      ],
     );
   }
 }

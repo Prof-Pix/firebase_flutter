@@ -1,5 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+//Importing from the Firebase Auth
+import 'package:firebase_auth/firebase_auth.dart';
+
+//Importing from the Screens Folder
+import 'forgotpass_page.dart';
+
+//Importing Components from the Component Folder
+import 'package:firebase_flutter/components/CustomTextField.dart';
+import 'package:firebase_flutter/components/CustomTextPasswordField.dart';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback showSignupPage;
@@ -10,17 +19,30 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   bool value = false;
 
   // textfield controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  bool isFieldsNotEmpty() {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      return false;
+    }
+    return true;
+  }
+
   //sign in method
   Future signIn() async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim());
+    if ((_emailController.text.trim().isEmpty) ||
+        _passwordController.text.trim().isEmpty) {
+    } else {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim());
+    }
   }
 
   //dispose
@@ -85,137 +107,131 @@ class _LoginPageState extends State<LoginPage> {
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.only(top: 130),
-                  child: Container(
-                    width: 300,
-                    child: const Image(
-                        image: AssetImage('assets/images/speakease_logo.png')),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 300,
+                        width: 300,
+                        child: Image.asset(
+                          'assets/images/speakease_logo.png',
+                          fit: BoxFit.contain,
+                        ),
+                      )
+                    ],
                   ),
                 ),
               )
             ],
           ),
-          Container(
-            padding: const EdgeInsets.all(34.8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: const Color(0xffFFFFFF),
-            ),
-            width: 354.3,
-            height: 326.7,
-            child: Column(
-              children: [
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Email",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      prefixIcon: const Icon(
-                        Icons.account_circle_sharp,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-                const SizedBox(
-                  height: 28.8,
-                ),
-                TextField(
-                  obscureText: true,
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xffe6e1e1),
-                      hintText: "Password",
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.all(10),
-                      prefixIcon: const Icon(
-                        Icons.lock,
-                        color: Color(0xffffffff),
-                      )),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(17, 15, 17, 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+          SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: const Color(0xffFFFFFF),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade600,
+                      spreadRadius: 1.5,
+                      blurRadius: 2,
+                    )
+                  ]),
+              width: 354.3,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CustomTextField(
+                      controller: _emailController,
+                      hintText: "Please enter email",
+                      labelText: "Email",
+                      prefixIcon: Icons.account_circle_sharp,
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    CustomTextPasswordField(
+                      controller: _passwordController,
+                      hintText: "Please enter password",
+                      labelText: "Password",
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          SizedBox(
-                            height: 0,
-                            width: 20,
-                            child: Transform.scale(
-                              scale: 0.7,
-                              child: Checkbox(
-                                  value: value,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      value = value;
-                                    });
-                                  }),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          const Text(
-                            "Remember me",
-                            style: TextStyle(
-                                fontSize: 10, color: Color(0xff000000)),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return ForgotPasswordPage();
+                              }));
+                            },
+                            child: const Text("Forgot Password?",
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xff800080),
+                                    fontWeight: FontWeight.w500)),
                           )
                         ],
                       ),
-                      const Text("Forgot Password?",
-                          style: TextStyle(fontSize: 10))
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 24.3,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                          onPressed: signIn,
-                          style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xffbe29ec)),
-                          child: const Text(
-                            "Login",
-                            style: TextStyle(
-                                color: Color(0xffffffff),
-                                fontSize: 15.7,
-                                fontWeight: FontWeight.w700),
-                          )),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                signIn();
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: const Color(0xffbe29ec),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 90),
+                            ),
+                            child: const Text(
+                              "Login",
+                              style: TextStyle(
+                                  color: Color(0xffffffff),
+                                  fontSize: 15.7,
+                                  fontWeight: FontWeight.w700),
+                            ))
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Not a member?",
+                          style: TextStyle(fontSize: 13),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        GestureDetector(
+                            onTap: widget.showSignupPage,
+                            child: const Text("Register now!",
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xff800080),
+                                    fontWeight: FontWeight.w500)))
+                      ],
                     )
                   ],
                 ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Don't have an account?",
-                      style: TextStyle(fontSize: 10),
-                    ),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    GestureDetector(
-                        onTap: widget.showSignupPage,
-                        child: const Text("Create an account",
-                            style: TextStyle(fontSize: 10)))
-                  ],
-                )
-              ],
+              ),
             ),
           )
         ]),
