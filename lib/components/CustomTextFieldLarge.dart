@@ -4,11 +4,6 @@ class CustomTextFieldLarge extends StatefulWidget {
   final String _labelText;
   final String _hintText;
   final TextEditingController _controller;
-  final IconData? _prefixIcon;
-
-  //for height and width
-  final double _horizontalHeight;
-  final double _verticalHeight;
 
   const CustomTextFieldLarge({
     required String labelText,
@@ -21,9 +16,6 @@ class CustomTextFieldLarge extends StatefulWidget {
   })  : _labelText = labelText,
         _hintText = hintText,
         _controller = controller,
-        _prefixIcon = prefixIcon,
-        _horizontalHeight = horizontalHeight,
-        _verticalHeight = verticalHeight,
         super(key: key);
 
   @override

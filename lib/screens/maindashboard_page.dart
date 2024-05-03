@@ -1,27 +1,26 @@
+import 'package:firebase_flutter/components/SpeakButton.dart';
+
 import 'package:flutter/material.dart';
 
 //Import from the Firebase Auth
 import 'package:firebase_auth/firebase_auth.dart';
-
 //Importing from the Screens Folder
 import 'package:firebase_flutter/screens/addbutton_page.dart';
-
-//Importing from the Components Folder
-import 'package:firebase_flutter/components/SpeakButton.dart';
-
-//Import from the Text-to-Speech Package
+//Import for the State Management
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-class MainDashboard extends StatefulWidget {
-  const MainDashboard({super.key});
+import '../firebase_service/firestore_provider.dart';
+import '../state/flutterTts_provider.dart';
+
+class MainDashboard extends ConsumerStatefulWidget {
+  const MainDashboard({Key? key}) : super(key: key);
 
   @override
-  State<MainDashboard> createState() => _MainDashboardState();
+  MainDashboardState createState() => MainDashboardState();
 }
 
-class _MainDashboardState extends State<MainDashboard> {
-  final FlutterTts _flutterTts = FlutterTts();
-
+class MainDashboardState extends ConsumerState<MainDashboard> {
   @override
   void initState() {
     super.initState();
@@ -40,18 +39,11 @@ class _MainDashboardState extends State<MainDashboard> {
   //   });
   // }
 
-  final TextEditingController _directTxtToSpeechController =
-      TextEditingController();
-
-  List<String> buttonCategory = ["Chats", "Emotions", "Conversation"];
-  List<String> chatButtonTitles = [
-    "Thank you!",
-  ];
-
-  //For Text-to-Speech
+  final TextEditingController _directTxtToSpeechController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final ttsController = ref.watch(flutterTtsProvider);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -92,8 +84,7 @@ class _MainDashboardState extends State<MainDashboard> {
                             children: [
                               Text(
                                 "Welcome back, ",
-                                style: TextStyle(
-                                    color: Color(0xffFFF5FF), fontSize: 17),
+                                style: TextStyle(color: Color(0xffFFF5FF), fontSize: 17),
                               ),
                               Text("Lois Griffin!",
                                   style: TextStyle(
@@ -103,33 +94,7 @@ class _MainDashboardState extends State<MainDashboard> {
                             ],
                           ),
                           const SizedBox(height: 30),
-                          TextField(
-                            controller: _directTxtToSpeechController,
-                            decoration: InputDecoration(
-                                filled: true,
-                                fillColor: const Color(0xffFFF5FF),
-                                hintText: "Got something to share?",
-                                hintStyle: const TextStyle(
-                                    color: Color(0xffADA0A0), fontSize: 15),
-                                enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7),
-                                    borderSide: const BorderSide(
-                                        width: 1, color: Color(0xffFFF5FF))),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7),
-                                    borderSide: const BorderSide(
-                                        width: 1, color: Color(0xffFFF5FF))),
-                                contentPadding: const EdgeInsets.all(10),
-                                suffixIcon: IconButton(
-                                  icon: const Icon(Icons.speaker_phone),
-                                  color: const Color(0xff800080),
-                                  onPressed: () {
-                                    _flutterTts.speak(
-                                        _directTxtToSpeechController.text
-                                            .trim());
-                                  },
-                                )),
-                          )
+                          directTextToSpeechField(ttsController),
                         ],
                       ),
                     ),
@@ -147,21 +112,20 @@ class _MainDashboardState extends State<MainDashboard> {
                       children: [
                         const Text(
                           "Buttons",
-                          style: TextStyle(
-                              fontSize: 22, fontWeight: FontWeight.w500),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
                         ),
                         Row(
                           children: [
                             Container(
                               decoration: BoxDecoration(
                                   border: Border.all(),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(5))),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
                               child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (context) {
-                                      return AddButtonPage();
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                      return AddButtonPage(
+                                        firestore: ref.watch(firestoreProvider),
+                                      );
                                     }));
                                   },
                                   child: const Icon(Icons.add)),
@@ -172,8 +136,7 @@ class _MainDashboardState extends State<MainDashboard> {
                             Container(
                               decoration: BoxDecoration(
                                   border: Border.all(),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(5))),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
                               child: const Icon(Icons.description_rounded),
                             ),
                             const SizedBox(
@@ -182,8 +145,7 @@ class _MainDashboardState extends State<MainDashboard> {
                             Container(
                               decoration: BoxDecoration(
                                   border: Border.all(),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(5))),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
                               child: const Icon(Icons.delete),
                             ),
                           ],
@@ -193,64 +155,60 @@ class _MainDashboardState extends State<MainDashboard> {
                     const SizedBox(
                       height: 15,
                     ),
-                    Expanded(
-                      child: ListView.separated(
-                        itemCount: buttonCategory.length,
-                        separatorBuilder: (BuildContext context, int index) =>
-                            const SizedBox(
-                                height: 10), // Set the height of the gap
-                        itemBuilder: (context, index) {
-                          return Container(
-                            height: 220,
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xffe6d0d0),
-                                width: 1.0,
-                              ),
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5)),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      buttonCategory[index],
-                                      style: const TextStyle(fontSize: 18),
-                                    ),
-                                    const Icon(Icons.keyboard_arrow_up_rounded),
-                                  ],
-                                ),
-                                Divider(),
-                                const SizedBox(
-                                  height: 5,
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 10),
-                                    child: ListView.separated(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: chatButtonTitles.length,
-                                      separatorBuilder:
-                                          (BuildContext context, int index) =>
-                                              const SizedBox(width: 10),
-                                      itemBuilder: (context, index) {
-                                        return SpeakButton(
-                                            flutterTts: _flutterTts,
-                                            speakText: chatButtonTitles[index]);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                    const SpeakButton(
+                        buttonID: 12313, buttonLabel: "Thank you", buttonSpeech: "Henlo"),
+                    // Expanded(
+                    //   child: StreamBuilder<List<SpeakButtonTemplate>>(
+                    //     stream: ref.watch(speechButtonsProvider),
+                    //     builder: (context, snapshot) {
+                    //       if (snapshot.hasData) {
+                    //         return ListView.separated(
+                    //           itemCount: snapshot.data!.docs.length,
+                    //           separatorBuilder:
+                    //               (BuildContext context, int index) =>
+                    //                   const SizedBox(height: 10),
+                    //           itemBuilder: (context, index) {
+                    //             return Container(
+                    //               height: 220,
+                    //               padding: const EdgeInsets.all(10),
+                    //               decoration: BoxDecoration(
+                    //                 border: Border.all(
+                    //                   color: const Color(0xffe6d0d0),
+                    //                   width: 1.0,
+                    //                 ),
+                    //                 borderRadius: const BorderRadius.all(
+                    //                     Radius.circular(5)),
+                    //               ),
+                    //               child: Column(
+                    //                 children: [
+                    //                   Row(
+                    //                     mainAxisAlignment:
+                    //                         MainAxisAlignment.spaceBetween,
+                    //                     children: [
+                    //                       Text(
+                    //                         snapshot.data!.docs[index]
+                    //                             .data()['categoryName'],
+                    //                         style:
+                    //                             const TextStyle(fontSize: 18),
+                    //                       ),
+                    //                       const Icon(
+                    //                           Icons.keyboard_arrow_up_rounded),
+                    //                     ],
+                    //                   ), // Corrected missing parenthesis
+                    //                 ],
+                    //               ),
+                    //             );
+                    //           },
+                    //         );
+                    //       } else if (snapshot.hasError) {
+                    //         return const Text(
+                    //             "error"); // Use const for simple widgets
+                    //       } else {
+                    //         return const CircularProgressIndicator(); // Use const
+                    //       }
+                    //     },
+                    //   ),
+                    // ),
                     const SizedBox(
                       height: 20,
                     )
@@ -288,7 +246,7 @@ class _MainDashboardState extends State<MainDashboard> {
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
                 const Column(
@@ -296,8 +254,7 @@ class _MainDashboardState extends State<MainDashboard> {
                   children: [
                     Text(
                       "Lois Griffin",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                     ),
                     SizedBox(
                       height: 5,
@@ -315,9 +272,7 @@ class _MainDashboardState extends State<MainDashboard> {
                         Text(
                           "User since 2014",
                           style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w100),
+                              fontSize: 15, color: Colors.white, fontWeight: FontWeight.w100),
                         )
                       ],
                     ),
@@ -333,9 +288,7 @@ class _MainDashboardState extends State<MainDashboard> {
                         ),
                         Text("24 buttons",
                             style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w100))
+                                fontSize: 15, color: Colors.white, fontWeight: FontWeight.w100))
                       ],
                     ),
                   ],
@@ -390,6 +343,31 @@ class _MainDashboardState extends State<MainDashboard> {
           ],
         ),
       ),
+    );
+  }
+
+  TextField directTextToSpeechField(FlutterTts ttsController) {
+    return TextField(
+      controller: _directTxtToSpeechController,
+      decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color(0xffFFF5FF),
+          hintText: "Got something to share?",
+          hintStyle: const TextStyle(color: Color(0xffADA0A0), fontSize: 15),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(width: 1, color: Color(0xffFFF5FF))),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(width: 1, color: Color(0xffFFF5FF))),
+          contentPadding: const EdgeInsets.all(10),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.speaker_phone),
+            color: const Color(0xff800080),
+            onPressed: () {
+              ttsController.speak(_directTxtToSpeechController.text.trim());
+            },
+          )),
     );
   }
 }

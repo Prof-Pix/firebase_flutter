@@ -1,29 +1,33 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_flutter/state/flutterTts_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-//Text Field Component
+class SpeakButton extends ConsumerWidget {
+  final int buttonID;
+  final String buttonLabel;
+  final String buttonSpeech;
 
-//Password Field Component
+  const SpeakButton({
+    super.key,
+    required this.buttonID,
+    required this.buttonLabel,
+    required this.buttonSpeech,
+  });
 
-class SpeakButton extends StatefulWidget {
-  final FlutterTts _flutterTts;
-  final String _speakText;
-
-  const SpeakButton(
-      {super.key, required FlutterTts flutterTts, required String speakText})
-      : _flutterTts = flutterTts,
-        _speakText = speakText;
+  factory SpeakButton.fromDocument(DocumentSnapshot doc) {
+    return SpeakButton(
+        buttonID: doc.id as int,
+        buttonLabel: doc['buttonLabel'] as String,
+        buttonSpeech: doc['buttonSpeech'] as String);
+  }
 
   @override
-  State<SpeakButton> createState() => _SpeakButtonState();
-}
-
-class _SpeakButtonState extends State<SpeakButton> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ttsController = ref.watch(flutterTtsProvider);
     return GestureDetector(
       onLongPress: () {
-        widget._flutterTts.speak(widget._speakText);
+        ttsController.speak(buttonSpeech);
       },
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -56,7 +60,7 @@ class _SpeakButtonState extends State<SpeakButton> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    widget._speakText,
+                    buttonSpeech, // Use buttonSpeech directly
                     style: const TextStyle(
                       color: Colors.white,
                       letterSpacing: 0.5,

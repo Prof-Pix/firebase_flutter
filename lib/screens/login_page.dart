@@ -1,7 +1,9 @@
+import 'package:firebase_flutter/firebase_service/firebase_service.dart';
 import 'package:flutter/material.dart';
 
 //Importing from the Firebase Auth
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 
 //Importing from the Screens Folder
 import 'forgotpass_page.dart';
@@ -26,22 +28,32 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool isFieldsNotEmpty() {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
-      return false;
+  bool isFieldsEmpty() {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   //sign in method
   Future signIn() async {
-    if ((_emailController.text.trim().isEmpty) ||
-        _passwordController.text.trim().isEmpty) {
-    } else {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim());
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (email.isNotEmpty && password.isNotEmpty) {
+      String? loginStatus = await FirebaseService.signInWithEmailAndPassword(email, password);
+
+      if (loginStatus == null) {
+        Get.rawSnackbar(messageText: const Text("Login successful."));
+      } else if (loginStatus == "InvalidCredential") {
+        Get.rawSnackbar(
+            messageText: const Text(
+          "Invalid Credentials. Please try again.",
+          style: TextStyle(color: Colors.white),
+        ));
+      } else {
+        Get.rawSnackbar(messageText: const Text("Unknown error. Please try again later."));
+      }
     }
   }
 
@@ -83,24 +95,11 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               Text(
                                 "Sign in to continue",
-                                style: TextStyle(
-                                    color: Color(0xffada0a0), fontSize: 15),
+                                style: TextStyle(color: Color(0xffada0a0), fontSize: 15),
                               )
                             ],
                           ),
                         ),
-                        Column(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(left: 60),
-                              width: 150,
-                              child: const Image(
-                                image:
-                                    AssetImage("assets/images/pic_login.png"),
-                              ),
-                            )
-                          ],
-                        )
                       ],
                     )),
               ),
@@ -137,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                       blurRadius: 2,
                     )
                   ]),
-              width: 354.3,
+              width: 300,
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -167,8 +166,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) {
                                 return ForgotPasswordPage();
                               }));
                             },
@@ -195,8 +193,7 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: const Color(0xffbe29ec),
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 90),
+                              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 90),
                             ),
                             child: const Text(
                               "Login",

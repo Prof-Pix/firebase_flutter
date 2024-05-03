@@ -64,6 +64,33 @@ class SignUpForm extends StatefulWidget {
 class _SignUpFormState extends State<SignUpForm> {
   final _formKey = GlobalKey<FormState>();
 
+  //For SnackBar
+  bool _isSnackBarDisplayed = false;
+
+  //For Validation & Snackbar Function
+  void showSnackBar(String textToDisplay) {
+    //We check first if there is a currently displayed snackbar
+    if (!_isSnackBarDisplayed) {
+      setState(() {
+        _isSnackBarDisplayed = true;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+              SnackBar(
+                content: Text(textToDisplay),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+              ),
+            )
+            .closed
+            .then((_) => {
+                  setState(() {
+                    _isSnackBarDisplayed = false;
+                  })
+                });
+      });
+    }
+  }
+
   //For Creating the Username and Pass
   Future signUp() async {
     try {
@@ -73,24 +100,12 @@ class _SignUpFormState extends State<SignUpForm> {
           password: _passwordCreateController.text.trim(),
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account Created Successfully!'),
-          ),
-        );
+        showSnackBar("Account Created Successfully!");
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Passwords must match. Please try again.'),
-          ),
-        );
+        showSnackBar("Passwords must match. Please try again.");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signup Failed. Please try again.'),
-        ),
-      );
+      showSnackBar("Signup Failed. Please try again.");
     }
   }
 
@@ -110,10 +125,12 @@ class _SignUpFormState extends State<SignUpForm> {
     return false;
   }
 
+  final double fieldSpaceSizeHeight = 10;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(43.0),
+      padding: const EdgeInsets.all(30.0),
       child: Form(
         key: _formKey,
         child: Column(
@@ -123,34 +140,35 @@ class _SignUpFormState extends State<SignUpForm> {
               hintText: 'Please enter email',
               controller: _emailCreateController,
               prefixIcon: Icons.account_circle_sharp,
+              regex: RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             CustomTextField(
               labelText: 'Full Name',
               hintText: 'Please enter full name',
               controller: _fullNameCreateController,
               prefixIcon: Icons.account_circle_sharp,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             CustomTextField(
               labelText: 'Username',
               hintText: 'Please enter username',
               controller: _userNameCreateController,
               prefixIcon: Icons.account_circle_sharp,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             CustomTextPasswordField(
               labelText: 'Password',
               hintText: 'Please enter password',
               controller: _passwordCreateController,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             CustomTextPasswordField(
               labelText: 'Confirm Password',
               hintText: 'Please confirm password',
               controller: _confirmPasswordCreateController,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12.5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -158,17 +176,20 @@ class _SignUpFormState extends State<SignUpForm> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       signUp();
+                    } else {
+                      showSnackBar(
+                          "Bad try. Please check all required fields.");
                     }
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xffbe29ec),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 100,
-                      vertical: 15,
+                      vertical: 10,
                     ),
                   ),
                   child: const Text(
-                    "Sign Up!",
+                    "Sign Up",
                     style: TextStyle(
                       color: Color(0xffffffff),
                       fontSize: 15.7,

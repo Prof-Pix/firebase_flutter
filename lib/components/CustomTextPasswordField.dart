@@ -21,8 +21,9 @@ class CustomTextPasswordField extends StatefulWidget {
 }
 
 class _CustomTextPasswordFieldState extends State<CustomTextPasswordField> {
-  //for setting the obscureText property
+  bool _isEmpty = false;
 
+  //for setting the obscureText property
   bool hidePassword = true;
   void setHidePassword() {
     setState(() {
@@ -47,7 +48,17 @@ class _CustomTextPasswordFieldState extends State<CustomTextPasswordField> {
           controller: widget._controller,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return "This field is required";
+              setState(() {
+                _isEmpty = value?.isEmpty ?? true;
+              });
+              Future.delayed(const Duration(seconds: 2), () {
+                setState(() {
+                  _isEmpty = false;
+                });
+              });
+              return 'This field is required';
+            } else if (value.length < 8) {
+              return "Password must be 8 characters long.";
             }
             return null;
           },
@@ -55,10 +66,14 @@ class _CustomTextPasswordFieldState extends State<CustomTextPasswordField> {
               filled: true,
               fillColor: const Color(0xffe6e1e1),
               hintText: widget._hintText,
-              hintStyle: const TextStyle(color: Colors.grey),
+              hintStyle: const TextStyle(
+                  color: Colors.grey, fontWeight: FontWeight.w300),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      color: _isEmpty ? Colors.red : Colors.transparent,
+                      width: 1.2)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(7),
-                borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.all(10),
               prefixIcon: const Icon(

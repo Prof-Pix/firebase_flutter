@@ -1,15 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_flutter/components/CustomTextField.dart';
 import 'package:firebase_flutter/components/CustomTextFieldLarge.dart';
+import 'package:firebase_flutter/state/speechbuttons_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AddButtonPage extends StatefulWidget {
-  const AddButtonPage({super.key});
+class AddButtonPage extends ConsumerStatefulWidget {
+  final FirebaseFirestore firestore;
+  const AddButtonPage({Key? key, required this.firestore}) : super(key: key);
 
   @override
-  State<AddButtonPage> createState() => _AddButtonPageState();
+  AddButtonPageState createState() => AddButtonPageState();
 }
 
-class _AddButtonPageState extends State<AddButtonPage> {
+class AddButtonPageState extends ConsumerState<AddButtonPage> {
   final _formKey = GlobalKey<FormState>();
 
   //Sample List of Category Options
@@ -20,8 +24,39 @@ class _AddButtonPageState extends State<AddButtonPage> {
 
   String? _buttonCategoryDefaultValue;
 
+  //For SnackBar
+  bool _isSnackBarDisplayed = false;
+
+  //For Validation & Snackbar Function
+  void showSnackBar(String textToDisplay) {
+    //We check first if there is a currently displayed snackbar
+    if (!_isSnackBarDisplayed) {
+      setState(() {
+        _isSnackBarDisplayed = true;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+              SnackBar(
+                content: Text(textToDisplay),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+              ),
+            )
+            .closed
+            .then((_) => {
+                  setState(() {
+                    _isSnackBarDisplayed = false;
+                  })
+                });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Access the collection speech button from the FireStore using the FireStore instance declared at the constructor of this widget
+    final CollectionReference speechButtonCollection =
+        widget.firestore.collection("speech_buttons");
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -134,7 +169,19 @@ class _AddButtonPageState extends State<AddButtonPage> {
                     padding:
                         const EdgeInsets.symmetric(vertical: 5, horizontal: 40),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    if (_buttonTitleController.text.trim().isNotEmpty) {
+                      // ref
+                      //     .read(rpButtonTitles)
+                      //     .add(_buttonTitleController.text.trim());
+                      // setState(() {
+                      //   _buttonTitleController.text = "";
+                      // });
+                      // print(buttonTitles);
+                    } else {
+                      showSnackBar("Please check all the required fields.");
+                    }
+                  },
                   child: const Text(
                     "Add Speech Button",
                     style: TextStyle(

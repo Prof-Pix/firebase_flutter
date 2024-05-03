@@ -2,8 +2,6 @@ import 'package:firebase_flutter/screens/login_page.dart';
 import 'package:firebase_flutter/screens/signup_page.dart';
 import 'package:flutter/material.dart';
 
-import '../screens/maindashboard_page.dart';
-
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
 
