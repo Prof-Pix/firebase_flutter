@@ -1,37 +1,49 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_flutter/state/flutterTts_provider.dart';
+import 'package:firebase_flutter/controllers/flutter_tts_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 
-class SpeakButton extends ConsumerWidget {
-  final int buttonID;
-  final String buttonLabel;
-  final String buttonSpeech;
+class SpeakButton extends StatelessWidget {
+  final String buttonId;
+  final String buttonName;
+  final String language;
+  final String speechText;
 
-  const SpeakButton({
-    super.key,
-    required this.buttonID,
-    required this.buttonLabel,
-    required this.buttonSpeech,
-  });
+  const SpeakButton(
+      {super.key,
+      required this.buttonId,
+      required this.buttonName,
+      required this.language,
+      required this.speechText});
 
-  factory SpeakButton.fromDocument(DocumentSnapshot doc) {
+  factory SpeakButton.fromJson(Map<String, dynamic> json) {
     return SpeakButton(
-        buttonID: doc.id as int,
-        buttonLabel: doc['buttonLabel'] as String,
-        buttonSpeech: doc['buttonSpeech'] as String);
+        buttonId: json['buttonId'] as String,
+        buttonName: json['buttonName'] as String,
+        language: json['language'] as String,
+        speechText: json['speechText'] as String);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'buttonId': buttonId,
+      'buttonName': buttonName,
+      'language': language,
+      'speechText': speechText
+    };
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ttsController = ref.watch(flutterTtsProvider);
+  Widget build(BuildContext context) {
+    final ttsController = Get.find<FlutterTtsController>();
     return GestureDetector(
       onLongPress: () {
-        ttsController.speak(buttonSpeech);
+        ttsController.flutterTts.setLanguage(language);
+        ttsController.flutterTts.speak(speechText);
       },
       child: Container(
         padding: const EdgeInsets.all(10),
-        width: 130,
+        width: 110,
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(10)),
           color: Color(0xff300030),
@@ -40,7 +52,7 @@ class SpeakButton extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              width: 80,
+              width: 70,
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -50,28 +62,26 @@ class SpeakButton extends ConsumerWidget {
                 ),
               ),
               child: const Icon(
-                Icons.handshake_sharp,
+                Icons.speaker,
                 size: 60,
                 color: Colors.orange,
               ),
             ),
-            Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    buttonSpeech, // Use buttonSpeech directly
-                    style: const TextStyle(
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                      fontSize: 16,
-                    ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  buttonName, // Use buttonSpeech directly
+                  style: const TextStyle(
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                    fontSize: 16,
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
             ),
           ],
         ),

@@ -1,8 +1,8 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-
-class HelperUtility {
-  Future<bool> isConnected() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
-  }
-}
+//
+// class HelperUtility {
+//   Future<bool> isConnected() async {
+//     var connectivityResult = await Connectivity().checkConnectivity();
+//     return connectivityResult != ConnectivityResult.none;
+//   }
+// }

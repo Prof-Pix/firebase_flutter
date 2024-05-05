@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_flutter/components/SpeakButton.dart';
+import 'package:firebase_flutter/controllers/userButtonDataController.dart';
+import 'package:firebase_flutter/firebase_service/firebase_service.dart';
+import 'package:firebase_flutter/screens/addcategory_page.dart';
 
 import 'package:flutter/material.dart';
 
@@ -6,26 +10,25 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //Importing from the Screens Folder
 import 'package:firebase_flutter/screens/addbutton_page.dart';
-//Import for the State Management
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:get/get.dart';
 
-import '../firebase_service/firestore_provider.dart';
-import '../state/flutterTts_provider.dart';
+import 'package:firebase_flutter/controllers/flutter_tts_controller.dart';
 
-class MainDashboard extends ConsumerStatefulWidget {
-  const MainDashboard({Key? key}) : super(key: key);
+import '../classes/Button.dart';
+import '../components/CustomTextField.dart';
+import 'editbutton_page.dart';
 
-  @override
-  MainDashboardState createState() => MainDashboardState();
+class DirectTextToSpeech extends GetxController {
+  TextEditingController directTtsController = TextEditingController();
 }
 
-class MainDashboardState extends ConsumerState<MainDashboard> {
-  @override
-  void initState() {
-    super.initState();
-    // initTTS();
-  }
+class MainDashboard extends StatefulWidget {
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // initTTS();
+  // }
 
   // void initTTS() {
   //   _flutterTts.getVoices.then((data) {
@@ -39,11 +42,20 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
   //   });
   // }
 
-  final TextEditingController _directTxtToSpeechController = TextEditingController();
+  const MainDashboard({super.key});
 
   @override
+  State<MainDashboard> createState() => _MainDashboardState();
+}
+
+class _MainDashboardState extends State<MainDashboard> {
+  final _editCategoryNameController = TextEditingController();
+  final _confirmCategoryDeleteController = TextEditingController();
+  @override
   Widget build(BuildContext context) {
-    final ttsController = ref.watch(flutterTtsProvider);
+    //For Flutter TTS Controller
+    final ttsController = Get.put(FlutterTtsController());
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -59,7 +71,7 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
           child: Column(
             children: [
               const SizedBox(
-                height: 40,
+                height: 20,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +106,7 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                             ],
                           ),
                           const SizedBox(height: 30),
-                          directTextToSpeechField(ttsController),
+                          directTextToSpeechField(ttsController.flutterTts),
                         ],
                       ),
                     ),
@@ -102,7 +114,7 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                 ],
               ),
               const SizedBox(
-                height: 40,
+                height: 30,
               ),
               Expanded(
                 child: Column(
@@ -122,31 +134,83 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                                   borderRadius: const BorderRadius.all(Radius.circular(5))),
                               child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) {
-                                      return AddButtonPage(
-                                        firestore: ref.watch(firestoreProvider),
-                                      );
-                                    }));
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        content: Container(
+                                          height: 100,
+                                          child: Column(
+                                            children: [
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                    color: const Color(0xffbe29ec),
+                                                    border: Border.all(),
+                                                    borderRadius:
+                                                        const BorderRadius.all(Radius.circular(5))),
+                                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                                width: 220,
+                                                child: GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.of(context).pop();
+                                                      Navigator.push(context,
+                                                          MaterialPageRoute(builder: (context) {
+                                                        return AddCategoryPage();
+                                                      }));
+                                                    },
+                                                    child: const Text(
+                                                      "New Category",
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(
+                                                          fontSize: 15, color: Colors.white),
+                                                    )),
+                                              ),
+                                              const SizedBox(
+                                                height: 10,
+                                              ),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xffbe29ec),
+                                                  border: Border.all(),
+                                                  borderRadius:
+                                                      const BorderRadius.all(Radius.circular(5)),
+                                                ),
+                                                padding: EdgeInsets.symmetric(vertical: 10),
+                                                width: 220,
+                                                child: GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.of(context).pop();
+                                                      Navigator.push(context,
+                                                          MaterialPageRoute(builder: (context) {
+                                                        return AddButtonPage();
+                                                      }));
+                                                    },
+                                                    child: const Text(
+                                                      "New Button",
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(
+                                                          fontSize: 15, color: Colors.white),
+                                                    )),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: const Text('Close'))
+                                        ],
+                                      ),
+                                    );
                                   },
                                   child: const Icon(Icons.add)),
                             ),
                             const SizedBox(
                               width: 7.5,
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                  border: Border.all(),
-                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
-                              child: const Icon(Icons.description_rounded),
-                            ),
-                            const SizedBox(
-                              width: 7.5,
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                  border: Border.all(),
-                                  borderRadius: const BorderRadius.all(Radius.circular(5))),
-                              child: const Icon(Icons.delete),
                             ),
                           ],
                         )
@@ -155,60 +219,396 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                     const SizedBox(
                       height: 15,
                     ),
-                    const SpeakButton(
-                        buttonID: 12313, buttonLabel: "Thank you", buttonSpeech: "Henlo"),
-                    // Expanded(
-                    //   child: StreamBuilder<List<SpeakButtonTemplate>>(
-                    //     stream: ref.watch(speechButtonsProvider),
-                    //     builder: (context, snapshot) {
-                    //       if (snapshot.hasData) {
-                    //         return ListView.separated(
-                    //           itemCount: snapshot.data!.docs.length,
-                    //           separatorBuilder:
-                    //               (BuildContext context, int index) =>
-                    //                   const SizedBox(height: 10),
-                    //           itemBuilder: (context, index) {
-                    //             return Container(
-                    //               height: 220,
-                    //               padding: const EdgeInsets.all(10),
-                    //               decoration: BoxDecoration(
-                    //                 border: Border.all(
-                    //                   color: const Color(0xffe6d0d0),
-                    //                   width: 1.0,
-                    //                 ),
-                    //                 borderRadius: const BorderRadius.all(
-                    //                     Radius.circular(5)),
-                    //               ),
-                    //               child: Column(
-                    //                 children: [
-                    //                   Row(
-                    //                     mainAxisAlignment:
-                    //                         MainAxisAlignment.spaceBetween,
-                    //                     children: [
-                    //                       Text(
-                    //                         snapshot.data!.docs[index]
-                    //                             .data()['categoryName'],
-                    //                         style:
-                    //                             const TextStyle(fontSize: 18),
-                    //                       ),
-                    //                       const Icon(
-                    //                           Icons.keyboard_arrow_up_rounded),
-                    //                     ],
-                    //                   ), // Corrected missing parenthesis
-                    //                 ],
-                    //               ),
-                    //             );
-                    //           },
-                    //         );
-                    //       } else if (snapshot.hasError) {
-                    //         return const Text(
-                    //             "error"); // Use const for simple widgets
-                    //       } else {
-                    //         return const CircularProgressIndicator(); // Use const
-                    //       }
-                    //     },
-                    //   ),
-                    // ),
+                    Expanded(
+                        child: StreamBuilder<List<dynamic>>(
+                      stream: FirebaseService.fetchUserButtons(
+                          FirebaseService.firebaseAuth.currentUser!.uid),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        } else {
+                          final buttonCategories = snapshot.data!;
+
+                          return ListView.separated(
+                            itemCount: buttonCategories.length,
+                            separatorBuilder: (BuildContext context, int index) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, categoryIndex) {
+                              final buttonCategory = buttonCategories[categoryIndex];
+                              final categoryName = buttonCategory['categoryName'];
+                              final categoryId = buttonCategory['categoryId'];
+                              final categoryButtons = buttonCategory['categoryButtons'];
+                              return Container(
+                                height: categoryButtons.isEmpty ? 80 : 205,
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: const Color(0xffe6d0d0),
+                                    width: 1.0,
+                                  ),
+                                  borderRadius: const BorderRadius.all(Radius.circular(5)),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          categoryName,
+                                          style: const TextStyle(fontSize: 18),
+                                        ),
+                                        Container(
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.all(2),
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(),
+                                                    borderRadius: const BorderRadius.all(
+                                                        Radius.circular(20))),
+                                                child: GestureDetector(
+                                                    onTap: () {
+                                                      _editCategoryNameController.clear();
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) => AlertDialog(
+                                                          title: const Text("Edit Category Name"),
+                                                          content: Container(
+                                                            height: 80,
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment.start,
+                                                              children: [
+                                                                Row(children: [
+                                                                  const Text(
+                                                                    "Current: ",
+                                                                    style: TextStyle(
+                                                                        fontSize: 16,
+                                                                        letterSpacing: 0.5,
+                                                                        fontWeight:
+                                                                            FontWeight.w500),
+                                                                  ),
+                                                                  Text(categoryName,
+                                                                      style: const TextStyle(
+                                                                        fontSize: 16,
+                                                                        letterSpacing: 0.5,
+                                                                      )),
+                                                                ]),
+                                                                const SizedBox(
+                                                                  height: 2,
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _editCategoryNameController,
+                                                                  decoration: InputDecoration(
+                                                                    filled: true,
+                                                                    fillColor:
+                                                                        const Color(0xffe6e1e1),
+                                                                    hintText:
+                                                                        "Enter new category name",
+                                                                    hintStyle: const TextStyle(
+                                                                        color: Colors.grey,
+                                                                        fontWeight:
+                                                                            FontWeight.w300),
+                                                                    border: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(7),
+                                                                    ),
+                                                                    contentPadding:
+                                                                        const EdgeInsets.all(10),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                                onPressed: () async {
+                                                                  String newCategoryName =
+                                                                      _editCategoryNameController
+                                                                          .text
+                                                                          .trim();
+
+                                                                  if (newCategoryName.isEmpty) {
+                                                                    if (!Get.isSnackbarOpen) {
+                                                                      Get.rawSnackbar(
+                                                                          backgroundColor:
+                                                                              Colors.red,
+                                                                          duration: const Duration(
+                                                                              milliseconds: 1500),
+                                                                          messageText: const Text(
+                                                                            "Please enter a new category name to continue.",
+                                                                            style: TextStyle(
+                                                                                color:
+                                                                                    Colors.white),
+                                                                          ));
+                                                                    }
+                                                                    return;
+                                                                  } else if (newCategoryName ==
+                                                                      categoryName) {
+                                                                    if (!Get.isSnackbarOpen) {
+                                                                      Get.rawSnackbar(
+                                                                          backgroundColor:
+                                                                              Colors.red,
+                                                                          duration: const Duration(
+                                                                              milliseconds: 1500),
+                                                                          messageText: const Text(
+                                                                            "New category name can't be the same as the old category name.",
+                                                                            style: TextStyle(
+                                                                                color:
+                                                                                    Colors.white),
+                                                                          ));
+                                                                    }
+                                                                    return;
+                                                                  }
+
+                                                                  try {
+                                                                    await FirebaseService
+                                                                        .editCategory(categoryId,
+                                                                            newCategoryName);
+
+                                                                    Navigator.of(context).pop();
+
+                                                                    Get.rawSnackbar(
+                                                                        backgroundColor:
+                                                                            Colors.green,
+                                                                        duration: const Duration(
+                                                                            milliseconds: 1500),
+                                                                        messageText: const Text(
+                                                                          "Category name successfully edited.",
+                                                                          style: TextStyle(
+                                                                              color: Colors.white),
+                                                                        ));
+                                                                  } catch (e) {
+                                                                    print(e);
+                                                                    return;
+                                                                  }
+                                                                },
+                                                                child: const Text('Save Changes')),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  Navigator.of(context).pop();
+                                                                },
+                                                                child: const Text('Close'))
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: const Icon(
+                                                      Icons.edit,
+                                                      size: 20,
+                                                    )),
+                                              ),
+                                              const SizedBox(
+                                                width: 5,
+                                              ),
+                                              Container(
+                                                padding: EdgeInsets.all(2),
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(),
+                                                    borderRadius: const BorderRadius.all(
+                                                        Radius.circular(20))),
+                                                child: GestureDetector(
+                                                    onTap: () {
+                                                      _confirmCategoryDeleteController.clear();
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) => AlertDialog(
+                                                          title: Text("Delete " + categoryName),
+                                                          content: Container(
+                                                            height: 180,
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment.start,
+                                                              children: [
+                                                                const Flexible(
+                                                                  child: Text(
+                                                                    "Deleting the category will also delete all of the buttons under it. Do you wish to continue?",
+                                                                    softWrap: true,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        letterSpacing: 0.5,
+                                                                        fontWeight: FontWeight.w500,
+                                                                        color: Colors.red),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 20,
+                                                                ),
+                                                                Flexible(
+                                                                  child: Text(
+                                                                    'Please enter "$categoryName" to continue.',
+                                                                    softWrap: true,
+                                                                    style: const TextStyle(
+                                                                        fontSize: 13,
+                                                                        letterSpacing: 0.5,
+                                                                        fontWeight:
+                                                                            FontWeight.w500),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 5,
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _confirmCategoryDeleteController,
+                                                                  decoration: InputDecoration(
+                                                                    filled: true,
+                                                                    fillColor:
+                                                                        const Color(0xffe6e1e1),
+                                                                    hintText: 'Enter "' +
+                                                                        categoryName +
+                                                                        '"',
+                                                                    hintStyle: const TextStyle(
+                                                                        color: Colors.grey,
+                                                                        fontWeight:
+                                                                            FontWeight.w300),
+                                                                    border: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(7),
+                                                                    ),
+                                                                    contentPadding:
+                                                                        const EdgeInsets.all(10),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                                onPressed: () async {
+                                                                  String confirmCategoryName =
+                                                                      _confirmCategoryDeleteController
+                                                                          .text
+                                                                          .trim();
+
+                                                                  if (confirmCategoryName.isEmpty) {
+                                                                    if (!Get.isSnackbarOpen) {
+                                                                      Get.rawSnackbar(
+                                                                          backgroundColor:
+                                                                              Colors.red,
+                                                                          duration: const Duration(
+                                                                              milliseconds: 1500),
+                                                                          messageText: const Text(
+                                                                            "Please enter the category name to continue.",
+                                                                            style: TextStyle(
+                                                                                color:
+                                                                                    Colors.white),
+                                                                          ));
+                                                                    }
+                                                                    return;
+                                                                  } else if (confirmCategoryName !=
+                                                                      categoryName) {
+                                                                    if (!Get.isSnackbarOpen) {
+                                                                      Get.rawSnackbar(
+                                                                          backgroundColor:
+                                                                              Colors.red,
+                                                                          duration: const Duration(
+                                                                              milliseconds: 1500),
+                                                                          messageText: const Text(
+                                                                            "Category name doesn't match. Please try again.",
+                                                                            style: TextStyle(
+                                                                                color:
+                                                                                    Colors.white),
+                                                                          ));
+                                                                    }
+                                                                    return;
+                                                                  }
+
+                                                                  try {
+                                                                    await FirebaseService
+                                                                        .deleteCategory(
+                                                                      categoryId,
+                                                                    );
+
+                                                                    Navigator.of(context).pop();
+
+                                                                    Get.rawSnackbar(
+                                                                        backgroundColor:
+                                                                            Colors.green,
+                                                                        duration: const Duration(
+                                                                            milliseconds: 1500),
+                                                                        messageText: const Text(
+                                                                          "Category is sucessfully deleted.",
+                                                                          style: TextStyle(
+                                                                              color: Colors.white),
+                                                                        ));
+                                                                  } catch (e) {
+                                                                    print(e);
+                                                                    return;
+                                                                  }
+                                                                },
+                                                                child:
+                                                                    const Text('Delete Category')),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  Navigator.of(context).pop();
+                                                                },
+                                                                child: const Text('Close'))
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: const Icon(
+                                                      Icons.delete,
+                                                      size: 20,
+                                                    )),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    SizedBox(
+                                        height: categoryButtons.isEmpty ? 30 : 155,
+                                        child: categoryButtons.isEmpty
+                                            ? const Text(
+                                                "Add new buttons for this category.",
+                                                style: TextStyle(
+                                                    fontStyle: FontStyle.italic,
+                                                    color: const Color(0xffbe29ec)),
+                                              )
+                                            : ListView.separated(
+                                                scrollDirection: Axis.horizontal,
+                                                separatorBuilder:
+                                                    (BuildContext context, int index) =>
+                                                        const SizedBox(width: 5),
+                                                itemCount: categoryButtons.length,
+                                                itemBuilder: (context, buttonIndex) {
+                                                  Button button =
+                                                      Button.fromJson(categoryButtons[buttonIndex]);
+                                                  return GestureDetector(
+                                                    onDoubleTap: () {
+                                                      Navigator.push(context,
+                                                          MaterialPageRoute(builder: (context) {
+                                                        return EditButtonPage(
+                                                          button: button,
+                                                          categoryId: categoryId,
+                                                        );
+                                                      }));
+                                                    },
+                                                    child: SpeakButton(
+                                                        buttonId: categoryButtons[buttonIndex]
+                                                            ['buttonId'],
+                                                        buttonName: categoryButtons[buttonIndex]
+                                                            ['buttonName'],
+                                                        language: categoryButtons[buttonIndex]
+                                                            ['language'],
+                                                        speechText: categoryButtons[buttonIndex]
+                                                            ['speechText']),
+                                                  );
+                                                })
+                                        // ,
+                                        )
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    )),
                     const SizedBox(
                       height: 20,
                     )
@@ -249,13 +649,43 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                 const SizedBox(
                   width: 20,
                 ),
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Lois Griffin",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                    ),
+                    StreamBuilder(
+                        stream: FirebaseService.fetchName(
+                            FirebaseService.firebaseAuth.currentUser!.uid),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Text(
+                              "Fetching name....",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                            );
+                          } else {
+                            return Text(
+                              snapshot.data! as String,
+                              style:
+                                  const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                            );
+                          }
+                        }),
+                    StreamBuilder(
+                        stream: FirebaseService.fetchUserName(
+                            FirebaseService.firebaseAuth.currentUser!.uid),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Text(
+                              "Fetching username....",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                            );
+                          } else {
+                            return Text(
+                              snapshot.data! as String,
+                              style: const TextStyle(
+                                  color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
+                            );
+                          }
+                        }),
                     SizedBox(
                       height: 5,
                     ),
@@ -269,11 +699,26 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                         SizedBox(
                           width: 5,
                         ),
-                        Text(
-                          "User since 2014",
-                          style: TextStyle(
-                              fontSize: 15, color: Colors.white, fontWeight: FontWeight.w100),
-                        )
+                        StreamBuilder(
+                            stream: FirebaseService.fetchUserCategoryCount(
+                                FirebaseService.firebaseAuth.currentUser!.uid),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Text(
+                                  "Fetching counts....",
+                                  style:
+                                      TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                );
+                              } else {
+                                return Text(
+                                  "${snapshot.data!.toString()} ${snapshot.data! > 1 ? "categories" : "category"}",
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13),
+                                );
+                              }
+                            })
                       ],
                     ),
                     Row(
@@ -286,23 +731,70 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
                         SizedBox(
                           width: 5,
                         ),
-                        Text("24 buttons",
-                            style: TextStyle(
-                                fontSize: 15, color: Colors.white, fontWeight: FontWeight.w100))
+                        StreamBuilder(
+                            stream: FirebaseService.fetchUserButtonCount(
+                                FirebaseService.firebaseAuth.currentUser!.uid),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Text(
+                                  "Fetching counts....",
+                                  style:
+                                      TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                );
+                              } else {
+                                return Text(
+                                  "${snapshot.data!.toString()} ${snapshot.data! > 1 ? "buttons" : "button"}",
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13),
+                                );
+                              }
+                            })
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.do_not_disturb_on_total_silence_sharp,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Container(
+                          width: 155,
+                          child: Flexible(
+                              child: StreamBuilder(
+                                  stream: FirebaseService.fetchRegistrationDate(
+                                      FirebaseService.firebaseAuth.currentUser!.uid),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return const Text(
+                                        "Fetching date....",
+                                        style: TextStyle(
+                                            color: Colors.white, fontWeight: FontWeight.w500),
+                                      );
+                                    } else {
+                                      return Text(
+                                        "User since ${snapshot.data!}",
+                                        softWrap: true,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 13),
+                                      );
+                                    }
+                                  })),
+                        )
                       ],
                     ),
                   ],
                 )
               ],
             )),
-            const ListTile(
-              leading: Icon(Icons.account_circle_sharp),
-              title: Text(
-                "Profile",
-                style: TextStyle(color: Colors.white),
-              ),
-              iconColor: Color(0xFFEDECFE),
-            ),
             const ListTile(
               leading: Icon(Icons.settings),
               title: Text(
@@ -328,8 +820,8 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
               iconColor: Color(0xFFEDECFE),
             ),
             GestureDetector(
-              onTap: () {
-                FirebaseAuth.instance.signOut();
+              onTap: () async {
+                await FirebaseService.signOut();
               },
               child: const ListTile(
                 leading: Icon(Icons.logout),
@@ -347,8 +839,11 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
   }
 
   TextField directTextToSpeechField(FlutterTts ttsController) {
+    //For DirectTextToSpeechController
+    final directTextToSpeechController = Get.put(DirectTextToSpeech());
+
     return TextField(
-      controller: _directTxtToSpeechController,
+      controller: directTextToSpeechController.directTtsController,
       decoration: InputDecoration(
           filled: true,
           fillColor: const Color(0xffFFF5FF),
@@ -365,7 +860,7 @@ class MainDashboardState extends ConsumerState<MainDashboard> {
             icon: const Icon(Icons.speaker_phone),
             color: const Color(0xff800080),
             onPressed: () {
-              ttsController.speak(_directTxtToSpeechController.text.trim());
+              ttsController.speak(directTextToSpeechController.directTtsController.text.trim());
             },
           )),
     );

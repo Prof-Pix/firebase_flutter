@@ -144,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      hintText: "Please enter email",
+                      hintText: "Enter email",
                       labelText: "Email",
                       prefixIcon: Icons.account_circle_sharp,
                     ),
@@ -153,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     CustomTextPasswordField(
                       controller: _passwordController,
-                      hintText: "Please enter password",
+                      hintText: "Enter password",
                       labelText: "Password",
                     ),
                     const SizedBox(

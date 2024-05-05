@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class CustomTextField extends StatefulWidget {
   final String _labelText;
@@ -36,8 +35,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       children: [
         Text(
           widget._labelText,
-          style: const TextStyle(
-              fontSize: 16, letterSpacing: 0.5, fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 16, letterSpacing: 0.5, fontWeight: FontWeight.w500),
         ),
         const SizedBox(
           height: 2,
@@ -67,12 +65,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
             filled: true,
             fillColor: const Color(0xffe6e1e1),
             hintText: widget._hintText,
-            hintStyle: const TextStyle(
-                color: Colors.grey, fontWeight: FontWeight.w300),
+            hintStyle: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
             enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: _isEmpty ? Colors.red : Colors.transparent,
-                    width: 1.2)),
+                borderSide:
+                    BorderSide(color: _isEmpty ? Colors.red : Colors.transparent, width: 1.2)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(7),
             ),

@@ -1,12 +1,15 @@
+import 'package:firebase_flutter/firebase_service/firebase_service.dart';
 import 'package:flutter/material.dart';
 
 //Importing Components from the Component Folder
 import 'package:firebase_flutter/components/CustomTextField.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   ForgotPasswordPage({Key? key}) : super(key: key);
 
-  final _recoveryEmailController = TextEditingController();
+  final _accountEmailController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -47,20 +50,35 @@ class ForgotPasswordPage extends StatelessWidget {
                 child: Column(
                   children: [
                     CustomTextField(
-                        labelText: "Recovery Email",
-                        hintText: "Please enter recovery email",
-                        controller: _recoveryEmailController,
+                        labelText: "Account Email",
+                        hintText: "Enter account email",
+                        controller: _accountEmailController,
                         prefixIcon: Icons.account_circle_sharp),
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TextButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              String accountEmail = _accountEmailController.text.trim();
+
+                              if (accountEmail.isEmpty) {
+                                Get.rawSnackbar(
+                                    messageText: const Text("Please enter email to continue."));
+                                return;
+                              }
+
+                              try {
+                                await FirebaseService.sendPasswordResetEmail(accountEmail);
+                                Get.rawSnackbar(
+                                    messageText: const Text("Reset email sent successfully."));
+                              } catch (e) {
+                                print(e);
+                              }
+                            },
                             style: TextButton.styleFrom(
                                 backgroundColor: const Color(0xffbe29ec),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 15)),
+                                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15)),
                             child: const Text(
                               "Reset Password",
                               style: TextStyle(

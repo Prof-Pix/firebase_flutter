@@ -38,10 +38,11 @@ dependencies:
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
   flutter_tts: ^3.8.5
-  flutter_riverpod: ^2.5.1
   cloud_firestore: ^4.17.2
   connectivity_plus: ^6.0.3
   get: ^4.6.6
+  uuid: ^4.4.0
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:

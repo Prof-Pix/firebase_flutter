@@ -1,41 +1,40 @@
 /* eslint-disable object-curly-spacing */
-// The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
-const functions = require("firebase-functions");
+
 // const { onRequest } = require("firebase-functions/v2/https");
 // const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 
+// The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
+const functions = require("firebase-functions");
 // The Firebase Admin SDK to access Firestore.
 const admin = require("firebase-admin");
-// const admin = require("firebase-admin/firestore");
 
 admin.initializeApp();
 
+// For UUID (random generated id)
+const { v4: uuidv4 } = require("uuid");
+
 exports.newUserSignUp = functions.auth.user().onCreate((user) => {
-  const initialData = {
-    name: user.displayName || "", // Use display name if available
+  const initialUserData = {
+    name: "",
     username: "",
-    buttons: {
-      greetings: {
-        // Example category
-        categoryId: "43535345",
-        buttons: [
+    registrationDate: "",
+    buttonCategories: [
+      {
+        categoryId: uuidv4(),
+        categoryName: "SpeakEase",
+        categoryButtons: [
           {
-            buttonId: "47568",
+            buttonId: uuidv4(),
             buttonName: "Hello",
-            language: "en",
+            language: "en-US",
             speechText: "Hello there!",
-          },
-          {
-            buttonId: "86979",
-            buttonName: "Welcome",
-            language: "en",
-            speechText: "Welcome!",
           },
         ],
       },
-      // Add more categories as needed
-    },
+    ],
   };
 
-  return admin.firestore().collection("users").doc(user.uid).set(initialData);
+  const userRef = admin.firestore().collection("users").doc(user.uid);
+  return userRef.set(initialUserData);
 });
+

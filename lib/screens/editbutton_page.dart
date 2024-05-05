@@ -8,44 +8,159 @@ import 'package:firebase_flutter/firebase_service/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
+
 import '../controllers/userButtonDataController.dart';
 
-class AddButtonPage extends StatefulWidget {
-  const AddButtonPage({super.key});
+class EditButtonPage extends StatefulWidget {
+  final Button button;
+  final String categoryId;
+
+  const EditButtonPage({super.key, required this.button, required this.categoryId});
 
   @override
-  State<AddButtonPage> createState() => _AddButtonPageState();
+  State<EditButtonPage> createState() => _EditButtonPageState();
 }
 
-class _AddButtonPageState extends State<AddButtonPage> {
+class _EditButtonPageState extends State<EditButtonPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _buttonTitleController = TextEditingController();
   final _buttonSpeechController = TextEditingController();
 
+  bool _hasChanges = false;
+
   String? _buttonCategoryDefaultValue;
   String? _languageDefaultValue;
 
   @override
+  void initState() {
+    super.initState();
+
+    _buttonTitleController.text = widget.button.buttonName;
+    _buttonTitleController.addListener(() {
+      if (_buttonTitleController.text.trim() != widget.button.buttonName) {
+        setState(() {
+          _hasChanges = true;
+        });
+      } else {
+        setState(() {
+          _hasChanges = false;
+        });
+      }
+    });
+
+    _buttonSpeechController.text = widget.button.speechText;
+    _buttonSpeechController.addListener(() {
+      if (_buttonSpeechController.text.trim() != widget.button.speechText) {
+        setState(() {
+          _hasChanges = true;
+        });
+      } else {
+        setState(() {
+          _hasChanges = false;
+        });
+      }
+    });
+    _languageDefaultValue = widget.button.language;
+    _buttonCategoryDefaultValue = widget.categoryId;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ttsController = Get.put(FlutterTtsController());
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Add Button"),
+        title: const Text("Edit Button"),
         centerTitle: true,
         elevation: 1,
       ),
       resizeToAvoidBottomInset: false,
       body: SafeArea(
           child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(),
+                        borderRadius: const BorderRadius.all(Radius.circular(5))),
+                    child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text("Delete ${widget.button.buttonName}"),
+                              content: Container(
+                                height: 40,
+                                child: const Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        "This action is irreversible. Do you wish to continue?",
+                                        softWrap: true,
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            letterSpacing: 0.5,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                    onPressed: () async {
+                                      Navigator.of(context).pop();
+                                      try {
+                                        await FirebaseService.deleteButton(
+                                            widget.categoryId, widget.button.buttonId);
+                                        Get.back();
+                                        Get.rawSnackbar(
+                                            backgroundColor: Colors.green,
+                                            duration: const Duration(milliseconds: 1500),
+                                            messageText: const Text(
+                                              "Button successfully deleted.",
+                                              style: TextStyle(color: Colors.white),
+                                            ));
+                                      } catch (e) {
+                                        Get.rawSnackbar(
+                                            backgroundColor: Colors.green,
+                                            duration: const Duration(milliseconds: 1500),
+                                            messageText: Text(
+                                              e.toString(),
+                                              style: TextStyle(color: Colors.white),
+                                            ));
+                                        print(e);
+                                        return;
+                                      }
+                                    },
+                                    child: const Text('Delete')),
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('Close'))
+                              ],
+                            ),
+                          );
+                        },
+                        child: const Icon(
+                          Icons.delete,
+                          size: 30,
+                        )),
+                  ),
+                ],
+              ),
               // Row(
               //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               //   children: [
@@ -55,12 +170,12 @@ class _AddButtonPageState extends State<AddButtonPage> {
               //       decoration: BoxDecoration(
               //         shape: BoxShape.circle,
               //         border: Border.all(
-              //           color: Colors.black,
+              //           color: Colors.white,
               //           width: 1.0,
               //         ),
               //       ),
               //       child: const Icon(
-              //         Icons.speaker,
+              //         Icons.account_circle_sharp,
               //         size: 60,
               //         color: Colors.orange,
               //       ),
@@ -78,7 +193,7 @@ class _AddButtonPageState extends State<AddButtonPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        "Select Category",
+                        "Change Category",
                         style: TextStyle(fontSize: 16, letterSpacing: 0.5),
                       ),
                       const SizedBox(
@@ -128,6 +243,8 @@ class _AddButtonPageState extends State<AddButtonPage> {
                                   setState(() {
                                     _buttonCategoryDefaultValue =
                                         value ?? _buttonCategoryDefaultValue;
+
+                                    _hasChanges = value != widget.categoryId;
                                   });
                                 },
                               );
@@ -140,11 +257,35 @@ class _AddButtonPageState extends State<AddButtonPage> {
                 ],
               ),
               const SizedBox(height: 20),
-              CustomTextField(
-                  labelText: "Button Name",
-                  hintText: "Enter button name",
-                  controller: _buttonTitleController,
-                  prefixIcon: Icons.account_circle_sharp),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Button Name",
+                    style: TextStyle(fontSize: 16, letterSpacing: 0.5, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  TextFormField(
+                    controller: _buttonTitleController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xffe6e1e1),
+                      hintText: "Enter button name",
+                      hintStyle: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      contentPadding: const EdgeInsets.all(10),
+                      prefixIcon: const Icon(
+                        Icons.account_circle_sharp,
+                        color: Color(0xffffffff),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -189,7 +330,7 @@ class _AddButtonPageState extends State<AddButtonPage> {
                 horizontalHeight: 10.0,
                 verticalHeight: 10.0,
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -197,7 +338,7 @@ class _AddButtonPageState extends State<AddButtonPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        "Select Language",
+                        "Change Language",
                         style: TextStyle(fontSize: 16, letterSpacing: 0.5),
                       ),
                       const SizedBox(
@@ -231,6 +372,8 @@ class _AddButtonPageState extends State<AddButtonPage> {
                                     onChanged: (dynamic value) {
                                       setState(() {
                                         _languageDefaultValue = value ?? _languageDefaultValue;
+
+                                        _hasChanges = value != widget.button.language;
                                       });
                                     },
                                   );
@@ -247,55 +390,54 @@ class _AddButtonPageState extends State<AddButtonPage> {
               const SizedBox(height: 20),
               TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xffbe29ec),
+                    backgroundColor: _hasChanges ? const Color(0xffbe29ec) : Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 40),
                   ),
-                  onPressed: () async {
-                    // Example Output: 2023-05-30
+                  onPressed: _hasChanges
+                      ? () async {
+                          if (!_formKey.currentState!.validate()) {
+                            if (!Get.isSnackbarOpen) {
+                              Get.rawSnackbar(
+                                  messageText: const Text(
+                                    "Please check all the required fields.",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor: const Color(0xffff0000),
+                                  duration: const Duration(seconds: 2));
+                            }
+                            return;
+                          }
+                          var uuid = Uuid();
+                          String buttonName = _buttonTitleController.text.trim();
+                          String speechText = _buttonSpeechController.text.trim();
+                          String language = _languageDefaultValue!;
 
-                    if (!_formKey.currentState!.validate()) {
-                      if (!Get.isSnackbarOpen) {
-                        Get.rawSnackbar(
-                            messageText: const Text(
-                              "Please check all the required fields.",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: const Color(0xffff0000),
-                            duration: const Duration(seconds: 2));
-                      }
-                      return;
-                    }
-                    var uuid = Uuid();
-                    String buttonId = uuid.v4();
-                    String buttonName = _buttonTitleController.text.trim();
-                    String speechText = _buttonSpeechController.text.trim();
-                    String language = _languageDefaultValue!;
+                          Button editedButtonData = Button(
+                              buttonId: widget.button.buttonId,
+                              buttonName: buttonName,
+                              language: language,
+                              speechText: speechText);
 
-                    Button newButton = Button(
-                        buttonId: buttonId,
-                        buttonName: buttonName,
-                        language: language,
-                        speechText: speechText);
-
-                    try {
-                      await FirebaseService.addNewButton(newButton, _buttonCategoryDefaultValue!);
-                      Navigator.pop(context);
-                      Get.rawSnackbar(
-                          backgroundColor: Colors.green,
-                          duration: const Duration(milliseconds: 1500),
-                          messageText: const Text(
-                            "Button successfully added.",
-                            style: TextStyle(color: Colors.white),
-                          ));
-                    } catch (e) {
-                      print(e);
-                    }
-                  },
+                          try {
+                            await FirebaseService.editButton(widget.categoryId, editedButtonData);
+                            Navigator.pop(context);
+                            Get.rawSnackbar(
+                                backgroundColor: Colors.green,
+                                duration: const Duration(milliseconds: 1500),
+                                messageText: const Text(
+                                  "Button successfully edited.",
+                                  style: TextStyle(color: Colors.white),
+                                ));
+                          } catch (e) {
+                            print(e);
+                          }
+                        }
+                      : null,
                   child: const Text(
-                    "Add Speech Button",
+                    "Save Button Changes",
                     style: TextStyle(
                         color: Color(0xffffffff), fontSize: 15.7, fontWeight: FontWeight.w700),
-                  ))
+                  )),
             ],
           ),
         ),

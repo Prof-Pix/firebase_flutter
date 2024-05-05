@@ -1,3 +1,4 @@
+import 'package:firebase_flutter/firebase_service/firebase_service.dart';
 import 'package:flutter/material.dart';
 
 ////Importing from the Firebase Auth
@@ -6,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 //Importing Components from the Component Folder
 import 'package:firebase_flutter/components/CustomTextField.dart';
 import 'package:firebase_flutter/components/CustomTextPasswordField.dart';
+import 'package:get/get.dart';
 
 class SignupPage extends StatefulWidget {
   final VoidCallback showLoginPage;
@@ -30,8 +32,7 @@ class _SignupPageState extends State<SignupPage> {
               decoration: const BoxDecoration(
                   color: Color(0xff800080),
                   borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(15),
-                      bottomRight: Radius.circular(15))),
+                      bottomLeft: Radius.circular(15), bottomRight: Radius.circular(15))),
               child: Center(
                 child: Text(
                   "Create your account".toUpperCase(),
@@ -94,7 +95,7 @@ class _SignUpFormState extends State<SignUpForm> {
   //For Creating the Username and Pass
   Future signUp() async {
     try {
-      if (isPasswordConfirmed()) {
+      if (isPasswordMatch()) {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailCreateController.text.trim(),
           password: _passwordCreateController.text.trim(),
@@ -117,9 +118,8 @@ class _SignUpFormState extends State<SignUpForm> {
   final _confirmPasswordCreateController = TextEditingController();
 
   //For confirming the password
-  bool isPasswordConfirmed() {
-    if (_passwordCreateController.text.trim() ==
-        _confirmPasswordCreateController.text.trim()) {
+  bool isPasswordMatch() {
+    if (_passwordCreateController.text.trim() == _confirmPasswordCreateController.text.trim()) {
       return true;
     }
     return false;
@@ -173,13 +173,24 @@ class _SignUpFormState extends State<SignUpForm> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      signUp();
-                    } else {
-                      showSnackBar(
-                          "Bad try. Please check all required fields.");
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) {
+                      showSnackBar("Bad try. Please check all required fields.");
+                      return;
                     }
+
+                    if (!isPasswordMatch()) {
+                      Get.rawSnackbar(
+                          messageText: const Text("Passwords don't match. Please try again."));
+                      return;
+                    }
+
+                    String email = _emailCreateController.text.trim();
+                    String password = _passwordCreateController.text.trim();
+                    String name = _fullNameCreateController.text.trim();
+                    String username = _userNameCreateController.text.trim();
+                    await FirebaseService.createUserWithEmailAndPassword(
+                        email, password, name, username);
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xffbe29ec),
@@ -209,8 +220,7 @@ class _SignUpFormState extends State<SignUpForm> {
                   onTap: widget.showLoginPage,
                   child: const Text(
                     "Login now!",
-                    style: TextStyle(
-                        color: Color(0xff800080), fontWeight: FontWeight.w700),
+                    style: TextStyle(color: Color(0xff800080), fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
